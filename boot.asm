@@ -12,6 +12,18 @@ init:
     mov sp, 0x7C00  ; stack ptr     -> 0x7C00
     sti             ; enable (start) interrupts
 
+init_sectors:
+    mov ax, 0x1000
+    mov es, ax
+    xor bx, bx
+
+    mov ah, 0x02  ; read sector
+    mov al, 0x01  ; number of sectors
+    mov ch, 0x00  ; cylinder 0
+    mov dh, 0x00  ; head     0
+    mov cl, 0x02  ; sector   2
+    int 0x13      ; BIOS disk
+
 prompt:
 	xor di, di  ; start of cmdbuf
 
@@ -151,3 +163,11 @@ cmdbuf: times 17 db 0  ; 16-char cmdbuf
 
 times 510 - ($ - $$) db 0
 dw 0xAA55
+
+;;;;;;;;;;;;;;;;;;
+;;;            ;;;
+;;;  SECTOR 2  ;;;
+;;;            ;;;
+;;;;;;;;;;;;;;;;;;
+
+times 1024 - ($ - $$) db 0
