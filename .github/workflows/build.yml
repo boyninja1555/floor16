@@ -1,0 +1,25 @@
+name: Build Floor16
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Trigger Makefile
+        run: make
+
+      - name: Release IMG
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          TIMESTAMP=$(date +%s)
+          TOOLTIP="The IMG is bootable. You can burn it directly to a USB and launch Floor16 if Legacy Boot is enabled in your BIOS."
+          gh release create "$TIMESTAMP" --title "Floor16-$TIMESTAMP" --notes "$TOOLTIP" floor16.img
