@@ -238,6 +238,8 @@ putc:
 	pop ax
 	ret
 
+boot_drive: db 0
+
 times 510 - ($ - $$) db 0
 dw 0xAA55
 
@@ -247,7 +249,6 @@ dw 0xAA55
 ;;;            ;;;
 ;;;;;;;;;;;;;;;;;;
 
-boot_drive: db 0
 help: db " '?' shows this menu", 0x0D, 0x0A, " '-' shuts off this device", 0x0D, 0x0A, " 'c' clears this console", 0x0D, 0x0A, " '@' shows the ASCII charset", 0x0D, 0x0A, " '#' before any text echoes it back", 0x0D, 0x0A, 0
 shutoff_failed: db "Shutoff failed, your system likely does not support APM nor the legacy method.", 0
 cmdbuf: times 33 db 0  ; 32-char cmdbuf
