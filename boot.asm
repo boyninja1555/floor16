@@ -257,8 +257,8 @@ CMD_shutoff:
 strlen:
 	xor di, di
 	.step:
-		cmp [bx + di], 0  ; if (BX[DI] == 0):
-		je .done          ; .done();
+		cmp byte [bx + di], 0  ; if (BX[DI] == 0):
+		je .done               ; .done();
 
 		inc di
 		jmp .step
