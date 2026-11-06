@@ -139,16 +139,8 @@ CMD_help:
 	jmp prompt.completed
 
 CMD_comment:
-	mov di, 1  ; start cmdbuf idx past '#'
-	.step:
-		mov byte al, [cmdbuf + di]  ; AL -> cmdbuf[DI]
-		cmp al, 0                   ; if (AL == 0):
-		je .done                    ; .done();
-
-		call putc                   ; putc();
-		inc di                      ; increment cmdbuf idx
-		jmp .step
-	.done:
+	mov bx, cmdbuf+1
+	call puts
 
 	; newline
 	mov al, 0x0D  ; \r
