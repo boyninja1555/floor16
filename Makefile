@@ -1,7 +1,7 @@
 AS = nasm
 
 SRC = boot.asm
-BIN = foor16.bin
+BIN = floor16.bin
 
 all: $(BIN)
 
