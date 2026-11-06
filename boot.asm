@@ -36,8 +36,8 @@ init_sectors:
     int 0x13              ; BIOS disk
 
 	jnc pre_prompt        ; if (!carry): pre_prompt();
-	cmp di, 8             ; if (DI != 8):
 	inc di  ; (always happens)
+	cmp di, 8             ; if (DI != 8):
 	jne init_sectors      ; init_sectors();
 
 pre_prompt:
@@ -87,7 +87,6 @@ prompt:
 
 		jmp .input
 	.enter:
-
 	call putnl
 
 	; command branches
