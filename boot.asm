@@ -13,9 +13,9 @@ init:
     sti             ; enable (start) interrupts
 
 init_sectors:
-    mov ax, 0x1000
+    xor ax, ax
     mov es, ax
-    xor bx, bx
+    mov bx, 0x7E00
 
     mov ah, 0x02  ; read sector
     mov al, 0x01  ; number of sectors
