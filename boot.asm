@@ -158,9 +158,6 @@ putc:
 	int 0x10      ; BIOS interrupt
 	ret
 
-help: db " '?' shows this menu", 0x0D, 0x0A, " '-' shuts off this device", 0x0D, 0x0A, " '#' before any text echoes it back", 0x0D, 0x0A, 0
-cmdbuf: times 17 db 0  ; 16-char cmdbuf
-
 times 510 - ($ - $$) db 0
 dw 0xAA55
 
@@ -169,5 +166,8 @@ dw 0xAA55
 ;;;  SECTOR 2  ;;;
 ;;;            ;;;
 ;;;;;;;;;;;;;;;;;;
+
+help: db " '?' shows this menu", 0x0D, 0x0A, " '-' shuts off this device", 0x0D, 0x0A, " '#' before any text echoes it back", 0x0D, 0x0A, 0
+cmdbuf: times 17 db 0  ; 16-char cmdbuf
 
 times 1024 - ($ - $$) db 0
