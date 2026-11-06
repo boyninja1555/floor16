@@ -46,7 +46,7 @@ prompt:
 		cmp ah, 0x0E               ; if (AH == SCAN_BACKSPACE):
 		je .backspace              ; .backspace();
 
-		cmp di, 16                 ; if (DI >= 16):
+		cmp di, 32                 ; if (DI >= 32):
 		jge .input                 ; .input();
 
 		mov [cmdbuf + di], al      ; save ASCII symbol to cmdbuf
@@ -205,6 +205,6 @@ dw 0xAA55
 ;;;;;;;;;;;;;;;;;;
 
 help: db " '?' shows this menu", 0x0D, 0x0A, " '-' shuts off this device", 0x0D, 0x0A, " 'c' clears this console", 0x0D, 0x0A, " '#' before any text echoes it back", 0x0D, 0x0A, 0
-cmdbuf: times 17 db 0  ; 16-char cmdbuf
+cmdbuf: times 33 db 0  ; 32-char cmdbuf
 
 times 1024 - ($ - $$) db 0
