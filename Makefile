@@ -1,15 +1,15 @@
 AS = nasm
 
 SRC = boot.asm
-BIN = floor16.bin
+IMG = floor16.img
 
-all: $(BIN)
+all: $(IMG)
 
-$(BIN): $(SRC)
-	$(AS) -f bin -o $(BIN) $(SRC)
+$(IMG): $(SRC)
+	$(AS) -f bin -o $(IMG) $(SRC)
 
-run: $(BIN)
-	qemu-system-x86_64 -m 512M -drive format=raw,file=$(BIN)
+run: $(IMG)
+	qemu-system-x86_64 -m 512M -drive format=raw,file=$(IMG)
 
 clean:
-	rm -f $(BIN)
+	rm -f $(IMG)
