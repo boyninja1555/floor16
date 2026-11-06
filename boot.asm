@@ -88,14 +88,14 @@ prompt:
 		jmp .input
 	.enter:
 
-	; newline
-	mov al, 0x0D  ; \r
-	call putc
-	mov al, 0x0A  ; \n
-	call putc
+	call putnl
 
 	; command branches
 	mov byte al, [cmdbuf]  ; AL -> cmdbuf[0]
+
+	; CMD_null
+	cmp al, 0
+	je prompt
 
 	; CMD_help
 	cmp al, '?'
@@ -124,10 +124,7 @@ prompt:
 	; Invalid command
 	mov al, '?'
 	call putc
-	mov al, 0x0D  ; \r
-	call putc
-	mov al, 0x0A  ; \n
-	call putc
+	call putnl
 
 	.completed:
 		xor di, di  ; cmdbuf idx = 0;
@@ -151,12 +148,7 @@ CMD_help:
 CMD_comment:
 	mov bx, cmdbuf+1
 	call puts
-
-	; newline
-	mov al, 0x0D  ; \r
-	call putc
-	mov al, 0x0A  ; \n
-	call putc
+	call putnl
 
 	jmp prompt.completed
 
@@ -188,12 +180,7 @@ CMD_ascii:
 		inc al
 		jmp .step
 	.done:
-
-	; newline
-	mov al, 0x0D  ; \r
-	call putc
-	mov al, 0x0A  ; \n
-	call putc
+	call putnl
 
 	jmp prompt.completed
 
@@ -208,12 +195,7 @@ CMD_promptchar:
 		call putc
 		mov al, '?'
 		call putc
-
-		; newline
-		mov al, 0x0D
-		call putc
-		mov al, 0x0A
-		call putc
+		call putnl
 
 		jmp prompt.completed
 	.nosyntax:
@@ -263,6 +245,13 @@ strlen:
 		inc di
 		jmp .step
 	.done:
+	ret
+
+putnl:
+	mov al, 0x0D  ; \r
+	call putc
+	mov al, 0x0A  ; \n
+	call putc
 	ret
 
 ; bx = char*
