@@ -133,16 +133,9 @@ prompt:
 	jmp prompt
 
 CMD_help:
-	xor di, di  ; idx = 0;
-	.step:
-		mov byte al, [help + di]  ; AL -> help[DI]
-		cmp al, 0                 ; if (AL == 0):
-		je .done                  ; .done();
+	mov bx, help
+	call puts
 
-		call putc                 ; putc();
-		inc di                    ; increment idx
-		jmp .step
-	.done:
 	jmp prompt.completed
 
 CMD_comment:
@@ -226,17 +219,24 @@ CMD_shutoff:
 		mov ax, 0x2000
 		out dx, ax
 
-	xor di, di  ; idx = 0;
-	.step:
-		mov al, [shutoff_failed + di]  ; AL -> shutoff_failed[DI]
-		cmp al, 0                      ; if (AL == 0):
-		je .done                       ; .done();
+	mov bx, shutoff_failed
+	call puts
 
+	jmp prompt.completed
+
+; bx = char*
+puts:
+	xor di, di
+	.step:
+		mov al, [bx + di]  ; AL -> BX[DI]
+		cmp al, 0          ; if (AL == 0):
+		je .done           ; .done();
+
+		call putc
 		inc di
 		jmp .step
 	.done:
-
-	jmp prompt.completed
+	ret
 
 ; al = char
 putc:
