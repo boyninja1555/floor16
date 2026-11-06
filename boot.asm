@@ -107,6 +107,10 @@ prompt:
 	cmp al, '@'
 	je CMD_ascii
 
+	; CMD_list
+	cmp al, 'l'
+	je CMD_list
+
 	; CMD_stop
 	cmp al, '-'
 	je CMD_stop
@@ -202,6 +206,9 @@ CMD_ascii:
 
 	jmp prompt.completed
 
+CMD_list:
+	jmp prompt.completed
+
 CMD_stop:
 	; connect to APM interface
     mov ax, 0x5301  ; APM connect interface
@@ -238,7 +245,11 @@ dw 0xAA55
 ;;;;;;;;;;;;;;;;;;
 
 boot_drive: db 0
-help: db " '?' shows this menu", 0x0D, 0x0A, " '-' shuts off this device", 0x0D, 0x0A, " 'c' clears this console", 0x0D, 0x0A, " '@' shows the ASCII charset", 0x0D, 0x0A, " '#' before any text echoes it back", 0x0D, 0x0A, 0
+help: db " '?' shows this menu", 0x0D, 0x0A, " '-' shuts off this device", 0x0D, 0x0A, " 'c' clears this console", 0x0D, 0x0A, " '@' shows the ASCII charset", 0x0D, 0x0A, " 'l' lists files", 0x0D, 0x0A, " '#' before any text echoes it back", 0x0D, 0x0A, 0
 cmdbuf: times 33 db 0  ; 32-char cmdbuf
+
+filec: db 0                 ; initial filecount of 0
+filen: times (8 *7) db 0  ; capacity for 7 filenames, each 8 chars
+filed: times (32*7) db 0  ; capacity for 7 files, each 32 bytes
 
 times 1024 - ($ - $$) db 0
