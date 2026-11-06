@@ -4,13 +4,14 @@
 ; DI = cmdbuf idx
 
 init:
+	mov [boot_drive], dl  ; save boot drive (DL)
+
 	cli                   ; disable (clear) interrupts
     xor ax, ax
     mov ds, ax            ; data segment  -> 0
     mov es, ax            ; extra segment -> 0
     mov ss, ax            ; stack segment -> 0
     mov sp, 0x7C00        ; stack ptr     -> 0x7C00
-	mov [boot_drive], dl  ; save boot drive (DL)
     sti                   ; enable (start) interrupts
 
 init_sectors:
