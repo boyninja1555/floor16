@@ -14,6 +14,8 @@ init:
     mov sp, 0x7C00        ; stack ptr     -> 0x7C00
     sti                   ; enable (start) interrupts
 
+; DI = retry counter
+xor di, di
 init_sectors:
     xor ax, ax
     mov es, ax
@@ -26,6 +28,11 @@ init_sectors:
     mov cl, 0x02          ; sector   2
 	mov dl, [boot_drive]  ; load boot drive (DL)
     int 0x13              ; BIOS disk
+
+	jnc pre_prompt        ; if (!carry): pre_prompt();
+	cmp di, 8             ; if (DI != 8):
+	inc di  ; (always happens)
+	jne init_sectors      ; init_sectors();
 
 pre_prompt:
 	jmp CMD_help
