@@ -1,0 +1,7 @@
+floor16.bin
+
+# Environment
+.vscode/
+.idea/
+*.iml
+.DS_Store

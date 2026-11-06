@@ -1,0 +1,4 @@
+16-bit command-line operating system that essentially does nothing!
+Also it fits into 512 bytes (one sector) which makes it superior to your fancy Doors and Penguins.
+
+Check out the Makefile if you're interested in trying it!
