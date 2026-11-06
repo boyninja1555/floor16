@@ -89,6 +89,10 @@ prompt:
 	cmp al, '#'
 	je CMD_comment
 
+	; CMD_clear
+	cmp al, 'c'
+	je CMD_clear
+
 	; CMD_stop
 	cmp al, '-'
 	je CMD_stop
@@ -147,6 +151,24 @@ CMD_comment:
 
 	jmp prompt.completed
 
+CMD_clear:
+	mov ah, 0x06  ; scroll up
+	mov al, 0x00  ; entire window
+	mov bh, 0x07  ; white-on-black
+	mov ch, 0     ; ul-row
+	mov cl, 0     ; ul-col
+	mov dh, 24    ; lr-row
+	mov dl, 79    ; lr-col
+	int 0x10      ; BIOS interrupt
+
+	mov ah, 0x02  ; set cursor position
+	mov bh, 0x00  ; page
+	mov dh, 0     ; row
+	mov dl, 0     ; col
+	int 10h       ; BIOS interrupt
+
+	jmp prompt.completed
+
 CMD_stop:
 	; connect to APM interface
     mov ax, 0x5301  ; APM connect interface
@@ -182,7 +204,7 @@ dw 0xAA55
 ;;;            ;;;
 ;;;;;;;;;;;;;;;;;;
 
-help: db " '?' shows this menu", 0x0D, 0x0A, " '-' shuts off this device", 0x0D, 0x0A, " '#' before any text echoes it back", 0x0D, 0x0A, 0
+help: db " '?' shows this menu", 0x0D, 0x0A, " '-' shuts off this device", 0x0D, 0x0A, " 'c' clears this console", 0x0D, 0x0A, " '#' before any text echoes it back", 0x0D, 0x0A, 0
 cmdbuf: times 17 db 0  ; 16-char cmdbuf
 
 times 1024 - ($ - $$) db 0
