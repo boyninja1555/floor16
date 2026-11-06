@@ -3,6 +3,12 @@
 
 ; DI = cmdbuf idx
 
+;;;;;;;;;;;;;;;;;;
+;;;            ;;;
+;;;  SECTOR 1  ;;;
+;;;            ;;;
+;;;;;;;;;;;;;;;;;;
+
 init:
 	mov [boot_drive], dl  ; save boot drive (DL)
 
@@ -41,7 +47,7 @@ prompt:
 	xor di, di  ; start of cmdbuf
 
 	; fancy prompt text
-	mov al, '@'
+	mov al, [promptchar]
 	call putc
 	mov al, ' '
 	call putc
@@ -106,6 +112,10 @@ prompt:
 	; CMD_ascii
 	cmp al, '@'
 	je CMD_ascii
+
+	; CMD_promptchar
+	cmp al, '&'
+	je CMD_promptchar
 
 	; CMD_shutoff
 	cmp al, '-'
@@ -187,6 +197,33 @@ CMD_ascii:
 
 	jmp prompt.completed
 
+CMD_promptchar:
+	mov bx, cmdbuf
+	call strlen
+	cmp di, 2     ; if (strlen(cmdbuf+1) == 2):
+	je .nosyntax  ; .nosyntax();
+
+	.syntax:
+		mov al, '&'
+		call putc
+		mov al, '?'
+		call putc
+
+		; newline
+		mov al, 0x0D
+		call putc
+		mov al, 0x0A
+		call putc
+
+		jmp prompt.completed
+	.nosyntax:
+
+	xor bx, bx            ; BX -> 0
+	mov bl, [cmdbuf + 1]  ; BL -> cmdbuf[1]
+	mov [promptchar], bx  ; promptchar -> BX
+
+	jmp prompt.completed
+
 CMD_shutoff:
 	; connect to APM interface
     mov ax, 0x5301  ; APM connect interface
@@ -215,6 +252,18 @@ CMD_shutoff:
 	call puts
 
 	jmp prompt.completed
+
+; bx = char*
+strlen:
+	xor di, di
+	.step:
+		cmp [bx + di], 0  ; if (BX[DI] == 0):
+		je .done          ; .done();
+
+		inc di
+		jmp .step
+	.done:
+	ret
 
 ; bx = char*
 puts:
@@ -249,8 +298,12 @@ dw 0xAA55
 ;;;            ;;;
 ;;;;;;;;;;;;;;;;;;
 
-help: db " '?' shows this menu", 0x0D, 0x0A, " '-' shuts off this device", 0x0D, 0x0A, " 'c' clears this console", 0x0D, 0x0A, " '@' shows the ASCII charset", 0x0D, 0x0A, " '#' before any text echoes it back", 0x0D, 0x0A, 0
+; immutable data
+help:           db " '?' shows this menu", 0x0D, 0x0A, " '-' shuts off this device", 0x0D, 0x0A, " 'c' clears this console", 0x0D, 0x0A, " '@' shows the ASCII charset", 0x0D, 0x0A, " '&' followed by anything will set your prompt character", 0x0D, 0x0A, " '#' before any text echoes it back", 0x0D, 0x0A, 0
 shutoff_failed: db "Shutoff failed, your system likely does not support APM nor the legacy method.", 0
+
+; mutable data
+promptchar:      db '@'
 cmdbuf: times 33 db 0  ; 32-char cmdbuf
 
 times 1024 - ($ - $$) db 0
