@@ -4,25 +4,27 @@
 ; DI = cmdbuf idx
 
 init:
-	cli             ; disable (clear) interrupts
+	cli                   ; disable (clear) interrupts
     xor ax, ax
-    mov ds, ax      ; data segment  -> 0
-    mov es, ax      ; extra segment -> 0
-    mov ss, ax      ; stack segment -> 0
-    mov sp, 0x7C00  ; stack ptr     -> 0x7C00
-    sti             ; enable (start) interrupts
+    mov ds, ax            ; data segment  -> 0
+    mov es, ax            ; extra segment -> 0
+    mov ss, ax            ; stack segment -> 0
+    mov sp, 0x7C00        ; stack ptr     -> 0x7C00
+	mov [boot_drive], dl  ; save boot drive (DL)
+    sti                   ; enable (start) interrupts
 
 init_sectors:
     xor ax, ax
     mov es, ax
     mov bx, 0x7E00
 
-    mov ah, 0x02  ; read sector
-    mov al, 0x01  ; number of sectors
-    mov ch, 0x00  ; cylinder 0
-    mov dh, 0x00  ; head     0
-    mov cl, 0x02  ; sector   2
-    int 0x13      ; BIOS disk
+    mov ah, 0x02          ; read sector
+    mov al, 0x01          ; number of sectors
+    mov ch, 0x00          ; cylinder 0
+    mov dh, 0x00          ; head     0
+    mov cl, 0x02          ; sector   2
+	mov dl, [boot_drive]  ; load boot drive (DL)
+    int 0x13              ; BIOS disk
 
 pre_prompt:
 	jmp CMD_help
@@ -204,6 +206,7 @@ dw 0xAA55
 ;;;            ;;;
 ;;;;;;;;;;;;;;;;;;
 
+boot_drive: db 0
 help: db " '?' shows this menu", 0x0D, 0x0A, " '-' shuts off this device", 0x0D, 0x0A, " 'c' clears this console", 0x0D, 0x0A, " '#' before any text echoes it back", 0x0D, 0x0A, 0
 cmdbuf: times 33 db 0  ; 32-char cmdbuf
 
