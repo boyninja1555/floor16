@@ -66,6 +66,10 @@ prompt:
 	; command branches
 	mov byte al, [cmdbuf]  ; AL -> cmdbuf[0]
 
+	; CMD_help
+	cmp al, '?'
+	je CMD_help
+
 	; CMD_comment
 	cmp al, '#'
 	je CMD_comment
@@ -81,6 +85,19 @@ prompt:
 	call putc
 	mov al, 0x0A  ; \n
 	call putc
+	jmp prompt
+
+CMD_help:
+	xor di, di  ; idx = 0;
+	.step:
+		mov byte al, [help + di]  ; AL -> help[DI]
+		cmp al, 0                 ; if (AL == 0):
+		je .done                  ; .done();
+
+		call putc                 ; putc();
+		inc di                    ; increment idx
+		jmp .step
+	.done:
 	jmp prompt
 
 CMD_comment:
@@ -129,6 +146,7 @@ putc:
 	int 0x10      ; BIOS interrupt
 	ret
 
+help: db " '?' shows this menu", 0x0D, 0x0A, " '-' shuts off this device", 0x0D, 0x0A, " '#' before any text echoes it back", 0x0D, 0x0A, 0
 cmdbuf: times 17 db 0  ; 16-char cmdbuf
 
 times 510 - ($ - $$) db 0
