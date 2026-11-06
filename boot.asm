@@ -107,9 +107,9 @@ prompt:
 	cmp al, '@'
 	je CMD_ascii
 
-	; CMD_stop
+	; CMD_shutoff
 	cmp al, '-'
-	je CMD_stop
+	je CMD_shutoff
 
 	; Invalid command
 	mov al, '?'
@@ -202,11 +202,12 @@ CMD_ascii:
 
 	jmp prompt.completed
 
-CMD_stop:
+CMD_shutoff:
 	; connect to APM interface
     mov ax, 0x5301  ; APM connect interface
     xor bx, bx      ; device ID (0: system BIOS)
     int 0x15        ; BIOS power management
+	jc .legacy      ; if (carry): .legacy();
 
     ; enable power management
     mov ax, 0x5308  ; enable/disable power management
@@ -220,7 +221,22 @@ CMD_stop:
     mov cx, 0x0003  ; off state   (3)
     int 0x15        ; BIOS power management
 
-	jmp $
+	.legacy:
+		mov dx, 0xB004
+		mov ax, 0x2000
+		out dx, ax
+
+	xor di, di  ; idx = 0;
+	.step:
+		mov al, [shutoff_failed + di]  ; AL -> shutoff_failed[DI]
+		cmp al, 0                      ; if (AL == 0):
+		je .done                       ; .done();
+
+		inc di
+		jmp .step
+	.done:
+
+	jmp prompt.completed
 
 ; al = char
 putc:
@@ -241,6 +257,7 @@ dw 0xAA55
 
 boot_drive: db 0
 help: db " '?' shows this menu", 0x0D, 0x0A, " '-' shuts off this device", 0x0D, 0x0A, " 'c' clears this console", 0x0D, 0x0A, " '@' shows the ASCII charset", 0x0D, 0x0A, " '#' before any text echoes it back", 0x0D, 0x0A, 0
+shutoff_failed: db "Shutoff failed, your system likely does not support APM nor the legacy method.", 0
 cmdbuf: times 33 db 0  ; 32-char cmdbuf
 
 times 1024 - ($ - $$) db 0
