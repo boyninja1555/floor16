@@ -103,6 +103,10 @@ prompt:
 	cmp al, 'c'
 	je CMD_clear
 
+	; CMD_ascii
+	cmp al, '@'
+	je CMD_ascii
+
 	; CMD_stop
 	cmp al, '-'
 	je CMD_stop
@@ -179,6 +183,25 @@ CMD_clear:
 
 	jmp prompt.completed
 
+CMD_ascii:
+	mov al, 0x20  ; char = ' ';
+	.step:
+		cmp al, 0x7F  ; if (AL == 0x7F):
+		je .done      ; .done();
+
+		call putc
+		inc al
+		jmp .step
+	.done:
+
+	; newline
+	mov al, 0x0D  ; \r
+	call putc
+	mov al, 0x0A  ; \n
+	call putc
+
+	jmp prompt.completed
+
 CMD_stop:
 	; connect to APM interface
     mov ax, 0x5301  ; APM connect interface
@@ -215,7 +238,7 @@ dw 0xAA55
 ;;;;;;;;;;;;;;;;;;
 
 boot_drive: db 0
-help: db " '?' shows this menu", 0x0D, 0x0A, " '-' shuts off this device", 0x0D, 0x0A, " 'c' clears this console", 0x0D, 0x0A, " '#' before any text echoes it back", 0x0D, 0x0A, 0
+help: db " '?' shows this menu", 0x0D, 0x0A, " '-' shuts off this device", 0x0D, 0x0A, " 'c' clears this console", 0x0D, 0x0A, " '@' shows the ASCII charset", 0x0D, 0x0A, " '#' before any text echoes it back", 0x0D, 0x0A, 0
 cmdbuf: times 33 db 0  ; 32-char cmdbuf
 
 times 1024 - ($ - $$) db 0
