@@ -24,6 +24,9 @@ init_sectors:
     mov cl, 0x02  ; sector   2
     int 0x13      ; BIOS disk
 
+pre_prompt:
+	jmp CMD_help
+
 prompt:
 	xor di, di  ; start of cmdbuf
 
@@ -97,6 +100,18 @@ prompt:
 	call putc
 	mov al, 0x0A  ; \n
 	call putc
+
+	.completed:
+		xor di, di  ; cmdbuf idx = 0;
+		.step:
+			mov byte al, [cmdbuf + di]  ; AL -> cmdbuf[DI]
+			cmp al, 0                   ; if (AL == 0):
+			je .done                    ; .done();
+
+			mov byte [cmdbuf + di], 0   ; reset char
+			inc di                      ; increment cmdbuf idx
+			jmp .step
+		.done:
 	jmp prompt
 
 CMD_help:
@@ -110,7 +125,7 @@ CMD_help:
 		inc di                    ; increment idx
 		jmp .step
 	.done:
-	jmp prompt
+	jmp prompt.completed
 
 CMD_comment:
 	mov di, 1  ; start cmdbuf idx past '#'
@@ -130,7 +145,7 @@ CMD_comment:
 	mov al, 0x0A  ; \n
 	call putc
 
-	jmp prompt
+	jmp prompt.completed
 
 CMD_stop:
 	; connect to APM interface
