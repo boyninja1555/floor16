@@ -201,7 +201,7 @@ CMD_promptchar:
 
 	xor bx, bx            ; BX -> 0
 	mov bl, [cmdbuf + 1]  ; BL -> cmdbuf[1]
-	mov [promptchar], bx  ; promptchar -> BX
+	mov [promptchar], bl  ; promptchar -> BX
 
 	jmp prompt.completed
 
