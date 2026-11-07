@@ -28,7 +28,7 @@ init_sectors:
     mov bx, 0x7E00
 
     mov ah, 0x02          ; read sector
-    mov al, 0x01          ; number of sectors
+    mov al, 0x02          ; number of sectors
     mov ch, 0x00          ; cylinder 0
     mov dh, 0x00          ; head     0
     mov cl, 0x02          ; sector   2
@@ -115,6 +115,10 @@ prompt:
 	; CMD_promptchar
 	cmp al, '&'
 	je CMD_promptchar
+
+	; CMD_slot
+	cmp al, '$'
+	je CMD_slot
 
 	; CMD_shutoff
 	cmp al, '-'
@@ -205,6 +209,51 @@ CMD_promptchar:
 
 	jmp prompt.completed
 
+CMD_slot:
+	mov byte al, [cmdbuf + 1]  ; AL -> cmdbuf[1]
+
+	cmp al, 'a'
+	jne .noalloc
+	.alloc:
+		mov al, 1
+		call slot_alloc
+
+		jmp prompt.completed
+	.noalloc:
+
+	cmp al, 'f'
+	jne .nofree
+	.free:
+		mov al, 1
+		call slot_free
+
+		jmp prompt.completed
+	.nofree:
+
+	cmp al, 's'
+	jne .nostatus
+	.status:
+		mov al, 1
+		call slot_status
+
+		cmp ah, 0
+		je .notallocd
+		mov bx, allocd_t
+		jmp .allocdlog
+		.notallocd: mov bx, allocd_f
+		.allocdlog: call puts
+
+		jmp prompt.completed
+	.nostatus:
+
+	mov al, '$'
+	call putc
+	mov al, '?'
+	call putc
+	call putnl
+
+	jmp prompt.completed
+
 CMD_shutoff:
 	; connect to APM interface
     mov ax, 0x5301  ; APM connect interface
@@ -287,11 +336,86 @@ dw 0xAA55
 ;;;;;;;;;;;;;;;;;;
 
 ; immutable data
-help:           db " '?' shows this menu", 0x0D, 0x0A, " '-' shuts off this device", 0x0D, 0x0A, " 'c' clears this console", 0x0D, 0x0A, " '@' shows the ASCII charset", 0x0D, 0x0A, " '&' followed by anything will set your prompt character", 0x0D, 0x0A, " '#' before any text echoes it back", 0x0D, 0x0A, 0
+help:           db " '?' shows this menu", 0x0D, 0x0A, " '-' shuts off this device", 0x0D, 0x0A, " 'c' clears this console", 0x0D, 0x0A, " '@' shows the ASCII charset", 0x0D, 0x0A, " '&' followed by anything will set your prompt character", 0x0D, 0x0A, " '$a' allocates a slot", 0x0D, 0x0A, " '$f' frees a slot", 0x0D, 0x0A, " '$s' retrieves the status of a slot", 0x0D, 0x0A, " '#' before any text echoes it back", 0x0D, 0x0A, 0
 shutoff_failed: db "Shutoff failed, your system likely does not support APM nor the legacy method.", 0
+allocd_t:       db "[allocated] true", 0x0D, 0x0A, 0
+allocd_f:       db "[allocated] false", 0x0D, 0x0A, 0
 
 ; mutable data
 promptchar:      db '@'
 cmdbuf: times 33 db 0  ; 32-char cmdbuf
 
+; extra code
+SLOT_COUNT equ 8
+SLOT_SIZE  equ 63
+
+; al = ID (1-indexed)
+slot_alloc:
+    push ax
+    push di
+    push es
+
+    xor ah, ah  ; allows AX to represent AL alone
+    mov di, ax
+    dec di      ; IDs are 1-indexed
+    shl di, 6   ; *64
+
+    xor ax, ax
+    mov es, ax
+    mov byte [es:slots + di], 1
+
+    pop es
+    pop di
+    pop ax
+    ret
+
+; al = ID (1-indexed)
+slot_free:
+    push ax
+    push di
+    push es
+
+    xor ah, ah  ; allows AX to represent AL alone
+    mov di, ax
+    dec di      ; IDs are 1-indexed
+    shl di, 6   ; *64
+
+    xor ax, ax
+    mov es, ax
+    mov byte [es:slots + di], 0
+
+    pop es
+    pop di
+    pop ax
+    ret
+
+; al = ID
+slot_status:
+    push di
+    push es
+
+    xor ah, ah  ; allows AX to represent AL alone
+    mov di, ax
+    dec di      ; IDs are 1-indexed
+    shl di, 6   ; *64
+
+    xor ax, ax
+    mov es, ax
+    mov ah, [es:slots + di]
+
+    pop es
+    pop di
+    ret
+
 times 1024 - ($ - $$) db 0
+
+;;;;;;;;;;;;;;;;;;
+;;;            ;;;
+;;;  SECTOR 3  ;;;
+;;;   Slots    ;;;
+;;;            ;;;
+;;;;;;;;;;;;;;;;;;
+
+slots: times SLOT_COUNT*(SLOT_SIZE+1) db 0
+
+times 1536 - ($ - $$) db 0
